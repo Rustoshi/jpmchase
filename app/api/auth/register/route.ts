@@ -35,6 +35,7 @@ const registerSchema = z.object({
   pin:             z.string().length(4, "PIN must be exactly 4 digits").regex(/^\d{4}$/, "PIN must contain only numbers"),
   confirmPin:      z.string(),
   phone:           z.string().optional(),
+  currency:        z.string().min(3, "Select a currency").max(3, "Invalid currency code"),
   agreeToTerms:    z.literal(true, {
     errorMap: () => ({ message: "You must agree to the Terms of Service" }),
   }),
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
       password:  parsed.data.password,
       pin:       parsed.data.pin,
       phone:     parsed.data.phone,
+      currency:  parsed.data.currency,
     })
 
     // Send welcome email (non-blocking — failures are swallowed)

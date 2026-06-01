@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -29,6 +29,7 @@ const registerSchema = z.object({
   lastName:        z.string().min(2, "At least 2 characters").max(50, "Max 50 characters"),
   email:           z.string().email("Enter a valid email address"),
   phone:           z.string().optional(),
+  currency:        z.string().min(3, "Select a currency").max(3, "Invalid currency code"),
   password:        z.string().min(8, "At least 8 characters"),
   confirmPassword: z.string(),
   pin:             z.string().length(4, "PIN must be exactly 4 digits").regex(/^\d{4}$/, "PIN must contain only numbers"),
@@ -139,6 +140,11 @@ export default function RegisterPage() {
   const [registrationDisabled, setRegistrationDisabled] = useState(false)
   const [checkingStatus, setCheckingStatus] = useState(true)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [supportedCurrencies, setSupportedCurrencies] = useState<string[]>([])
+  const [loadingCurrencies, setLoadingCurrencies] = useState(true)
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false)
+  const [currencySearch, setCurrencySearch] = useState("")
+  const currencyDropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     (async () => {
@@ -153,17 +159,52 @@ export default function RegisterPage() {
     })()
   }, [])
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/public/settings")
+        if (res.ok) {
+          const data = await res.json()
+          setSupportedCurrencies(data.supportedCurrencies || [
+            "USD", "CAD", "MXN", "EUR", "GBP", "CHF", "SEK", "NOK", "DKK", "PLN",
+            "CZK", "HUF", "RON", "BGN", "HRK", "JPY", "CNY", "INR", "AUD", "NZD",
+            "SGD", "HKD", "KRW", "TWD", "THB", "IDR", "MYR", "PHP", "VND", "ILS",
+            "AED", "SAR", "QAR", "KWD", "BHD", "OMR", "BRL", "ARS", "CLP", "COP",
+            "PEN", "UYU", "PYG", "BOB", "ZAR", "EGP", "KES", "GHS", "TZS", "UGX",
+            "ZMW", "BWP", "NAD", "MZN", "AOA", "RUB", "UAH", "KZT", "GEL", "AMD",
+            "AZN", "TRY", "PKR", "BDT", "LKR", "NPR", "MUR", "JMD", "TTD", "BBD",
+            "XCD", "BZD", "GTQ", "HNL", "NIO", "CRC", "PAB", "DOP", "CUP", "HTG",
+            "XAF", "XOF", "XPF"
+          ])
+        }
+      } catch { /* ignore */ }
+      setLoadingCurrencies(false)
+    })()
+  }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target as Node)) {
+        setShowCurrencyDropdown(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   const {
     register,
     handleSubmit,
     trigger,
     watch,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      firstName: "", lastName: "", email: "", phone: "",
+      firstName: "", lastName: "", email: "", phone: "", currency: "USD",
       password: "", confirmPassword: "", pin: "", confirmPin: "",
     },
   })
@@ -178,7 +219,7 @@ export default function RegisterPage() {
 
   const goToStep2 = useCallback(async () => {
     setApiError(null)
-    const valid = await trigger(["firstName", "lastName", "email", "phone"])
+    const valid = await trigger(["firstName", "lastName", "email", "phone", "currency"])
     if (valid) setStep(1)
   }, [trigger])
 
@@ -441,6 +482,83 @@ export default function RegisterPage() {
                     className="w-full h-14 pl-12 pr-4 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white placeholder:text-white/30 transition-all duration-200 outline-none focus:border-[#3B9EFF] focus:bg-white/[0.05]"
                   />
                 </div>
+              </div>
+
+              {/* Currency */}
+              <div className="space-y-2">
+                <label 
+                  htmlFor="currency" 
+                  className={`text-sm font-medium transition-colors ${
+                    focusedField === "currency" ? "text-[#3B9EFF]" : "text-white/60"
+                  }`}
+                >
+                  Preferred currency
+                </label>
+                <div className="relative" ref={currencyDropdownRef}>
+                  {loadingCurrencies ? (
+                    <div className="w-full h-14 px-4 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center text-white/30">
+                      Loading currencies...
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        onClick={() => {
+                          setShowCurrencyDropdown(!showCurrencyDropdown)
+                          setFocusedField("currency")
+                        }}
+                        className={`w-full h-14 px-4 rounded-xl bg-white/[0.03] border text-white transition-all duration-200 outline-none cursor-pointer flex items-center justify-between ${
+                          errors.currency 
+                            ? "border-red-500/50 focus:border-red-500" 
+                            : "border-white/[0.08] focus:border-[#3B9EFF] focus:bg-white/[0.05]"
+                        } ${showCurrencyDropdown ? "bg-white/[0.05]" : ""}`}
+                      >
+                        <span>{watch("currency") || "Select currency"}</span>
+                        <Hash className={`w-5 h-5 transition-colors ${
+                          focusedField === "currency" ? "text-[#3B9EFF]" : "text-white/30"
+                        }`} />
+                      </div>
+                      {showCurrencyDropdown && (
+                        <div className="absolute z-50 w-full mt-2 rounded-xl bg-gray-900 border border-white/[0.08] shadow-xl max-h-60 overflow-hidden flex flex-col">
+                          <div className="p-2 border-b border-white/[0.08]">
+                            <input
+                              type="text"
+                              placeholder="Search currencies..."
+                              value={currencySearch}
+                              onChange={(e) => setCurrencySearch(e.target.value.toUpperCase())}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-full h-10 px-3 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/30 text-sm outline-none focus:border-[#3B9EFF]"
+                            />
+                          </div>
+                          <div className="overflow-y-auto max-h-48">
+                            {supportedCurrencies
+                              .filter(curr => curr.includes(currencySearch))
+                              .slice(0, 50)
+                              .map((curr) => (
+                              <div
+                                key={curr}
+                                onClick={() => {
+                                  setValue("currency", curr)
+                                  setShowCurrencyDropdown(false)
+                                  setCurrencySearch("")
+                                  setFocusedField(null)
+                                }}
+                                className="px-4 py-2 text-sm text-white hover:bg-white/[0.05] cursor-pointer transition-colors"
+                              >
+                                {curr}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                {errors.currency && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.currency.message}
+                  </p>
+                )}
               </div>
 
               <button

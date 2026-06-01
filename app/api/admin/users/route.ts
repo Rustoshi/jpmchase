@@ -7,6 +7,7 @@ import { getUsers, randomDigits, randomAlphaNum } from "@/lib/services/user.serv
 import { connectDB }                 from "@/lib/db/connection"
 import User                          from "@/lib/models/User"
 import Account                       from "@/lib/models/Account"
+import AppSettings, { APP_SETTINGS_ID } from "@/lib/models/AppSettings"
 
 // ── GET /api/admin/users ──────────────────────────────────────────────────────
 
@@ -46,6 +47,7 @@ const CreateUserSchema = z.object({
   password:  z.string().min(8),
   role:      z.enum(["user", "admin"]).default("user"),
   phone:     z.string().optional(),
+  currency:  z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -62,7 +64,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Validation failed", issues: parsed.error.flatten() }, { status: 422 })
   }
 
-  const { firstName, lastName, email, password, role, phone } = parsed.data
+  const { firstName, lastName, email, password, role, phone, currency } = parsed.data
 
   try {
     await connectDB()
@@ -71,6 +73,10 @@ export async function POST(req: NextRequest) {
     if (existing) {
       return NextResponse.json({ error: "Email already in use" }, { status: 409 })
     }
+
+    // Get platform default currency if not provided
+    const settings = await AppSettings.findById(APP_SETTINGS_ID).lean()
+    const userCurrency = (currency || settings?.defaultCurrency || "USD").toUpperCase()
 
     const passwordHash  = await bcrypt.hash(password, 12)
     const referralCode  = `NP${randomAlphaNum(6)}`
@@ -87,6 +93,7 @@ export async function POST(req: NextRequest) {
       emailVerified: true,
       kycStatus:    "unverified",
       kycTier:      1,
+      preferredCurrency: userCurrency,
     })
 
     // Fiat account
@@ -97,7 +104,7 @@ export async function POST(req: NextRequest) {
       routingNumber: randomDigits(9),
       swiftCode:     `NVPY${randomAlphaNum(4)}`,
       iban:          `US${randomDigits(18)}`,
-      currency:      "USD",
+      currency:      userCurrency,
       accountType:   "checking",
     })
 

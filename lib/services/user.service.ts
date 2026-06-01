@@ -139,6 +139,7 @@ export interface UserDetail {
   twoFactorEnabled: boolean
   emailVerified:   boolean
   transferPin?:    string
+  preferredCurrency: string
   referralCode:    string
   createdAt:       string
   updatedAt:       string
@@ -176,6 +177,7 @@ export interface UpdateUserData {
   isSuspended?:  boolean
   suspendReason?: string
   emailVerified?: boolean
+  preferredCurrency?: string
 }
 
 // ── Service functions ─────────────────────────────────────────────────────────
@@ -332,6 +334,7 @@ export async function getUserById(id: string): Promise<UserDetail | null> {
     twoFactorEnabled: user.twoFactorEnabled,
     emailVerified:    user.emailVerified,
     transferPin:      user.transferPin,
+    preferredCurrency: user.preferredCurrency || "USD",
     referralCode:     user.referralCode ?? "",
     createdAt:        new Date(user.createdAt).toISOString(),
     updatedAt:        new Date(user.updatedAt).toISOString(),
@@ -437,7 +440,7 @@ export async function updateUser(
 
   const ALLOWED = [
     "firstName","lastName","email","phone","dateOfBirth","address",
-    "role","kycStatus","kycTier","isActive","isSuspended","suspendReason","emailVerified","transferPin",
+    "role","kycStatus","kycTier","isActive","isSuspended","suspendReason","emailVerified","transferPin","preferredCurrency",
   ] as const
 
   const before: Record<string, unknown> = {}

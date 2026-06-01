@@ -100,7 +100,99 @@ const AppSettingsSchema = new Schema<IAppSettings>(
     defaultCurrency:          { type: String, default: "USD", uppercase: true, trim: true },
     supportedCurrencies:      {
       type: [String],
-      default: ["USD", "EUR", "GBP", "NGN", "CAD", "AUD", "JPY", "CHF", "CNY", "INR"],
+      default: [
+        // North America
+        "USD",  // US Dollar
+        "CAD",  // Canadian Dollar
+        "MXN",  // Mexican Peso
+        // Europe
+        "EUR",  // Euro
+        "GBP",  // British Pound
+        "CHF",  // Swiss Franc
+        "SEK",  // Swedish Krona
+        "NOK",  // Norwegian Krone
+        "DKK",  // Danish Krone
+        "PLN",  // Polish Zloty
+        "CZK",  // Czech Koruna
+        "HUF",  // Hungarian Forint
+        "RON",  // Romanian Leu
+        "BGN",  // Bulgarian Lev
+        "HRK",  // Croatian Kuna
+        // Asia Pacific
+        "JPY",  // Japanese Yen
+        "CNY",  // Chinese Yuan
+        "INR",  // Indian Rupee
+        "AUD",  // Australian Dollar
+        "NZD",  // New Zealand Dollar
+        "SGD",  // Singapore Dollar
+        "HKD",  // Hong Kong Dollar
+        "KRW",  // South Korean Won
+        "TWD",  // Taiwan Dollar
+        "THB",  // Thai Baht
+        "IDR",  // Indonesian Rupiah
+        "MYR",  // Malaysian Ringgit
+        "PHP",  // Philippine Peso
+        "VND",  // Vietnamese Dong
+        // Middle East
+        "ILS",  // Israeli Shekel
+        "AED",  // UAE Dirham
+        "SAR",  // Saudi Riyal
+        "QAR",  // Qatari Riyal
+        "KWD",  // Kuwaiti Dinar
+        "BHD",  // Bahraini Dinar
+        "OMR",  // Omani Rial
+        // South America
+        "BRL",  // Brazilian Real
+        "ARS",  // Argentine Peso
+        "CLP",  // Chilean Peso
+        "COP",  // Colombian Peso
+        "PEN",  // Peruvian Sol
+        "UYU",  // Uruguayan Peso
+        "PYG",  // Paraguayan Guarani
+        "BOB",  // Bolivian Boliviano
+        // Africa
+        "ZAR",  // South African Rand
+        "EGP",  // Egyptian Pound
+        "KES",  // Kenyan Shilling
+        "GHS",  // Ghanaian Cedi
+        "TZS",  // Tanzanian Shilling
+        "UGX",  // Ugandan Shilling
+        "ZMW",  // Zambian Kwacha
+        "BWP",  // Botswanan Pula
+        "NAD",  // Namibian Dollar
+        "MZN",  // Mozambican Metical
+        "AOA",  // Angolan Kwanza
+        // Eastern Europe & Central Asia
+        "RUB",  // Russian Ruble
+        "UAH",  // Ukrainian Hryvnia
+        "KZT",  // Kazakhstani Tenge
+        "GEL",  // Georgian Lari
+        "AMD",  // Armenian Dram
+        "AZN",  // Azerbaijani Manat
+        // Others
+        "TRY",  // Turkish Lira
+        "PKR",  // Pakistani Rupee
+        "BDT",  // Bangladeshi Taka
+        "LKR",  // Sri Lankan Rupee
+        "NPR",  // Nepalese Rupee
+        "MUR",  // Mauritian Rupee
+        "JMD",  // Jamaican Dollar
+        "TTD",  // Trinidad and Tobago Dollar
+        "BBD",  // Barbadian Dollar
+        "XCD",  // East Caribbean Dollar
+        "BZD",  // Belize Dollar
+        "GTQ",  // Guatemalan Quetzal
+        "HNL",  // Honduran Lempira
+        "NIO",  // Nicaraguan Córdoba
+        "CRC",  // Costa Rican Colón
+        "PAB",  // Panamanian Balboa
+        "DOP",  // Dominican Peso
+        "CUP",  // Cuban Peso
+        "HTG",  // Haitian Gourde
+        "XAF",  // Central African CFA Franc
+        "XOF",  // West African CFA Franc
+        "XPF",  // CFP Franc
+      ],
     },
     btcPriceSource:           { type: String, default: "coingecko" },
     fallbackBtcRate:          { type: Number, default: 65000, min: 0 },

@@ -81,7 +81,7 @@ export async function sendWelcomeEmail(
   firstName:         string,
   verificationToken: string
 ): Promise<boolean> {
-  const verificationUrl = `${BASE_URL}/verify-email?token=${verificationToken}`
+  const verificationUrl = `${BASE_URL}/api/auth/verify-email?token=${verificationToken}`
   const html = renderWelcomeEmail({ firstName, verificationUrl })
 
   return sendEmail({

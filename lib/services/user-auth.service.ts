@@ -17,6 +17,7 @@ export interface RegisterData {
   password:  string
   pin:       string
   phone?:    string
+  currency:  string
 }
 
 // ── Validation helpers ────────────────────────────────────────────────────────
@@ -183,6 +184,7 @@ export async function registerUser(
     emailVerificationToken,
     transferPin: data.pin,
     referralCode,
+    preferredCurrency: data.currency.toUpperCase(),
   })
 
   // Create fiat account
@@ -190,7 +192,7 @@ export async function registerUser(
   await Account.create({
     userId:        user._id,
     walletType:    "fiat",
-    currency:      "USD",
+    currency:      data.currency.toUpperCase(),
     accountNumber: fiatAccountNumber,
     routingNumber: "0" + randomDigits(8),
     swiftCode:     "NVPY" + randomUpperLetters(4),

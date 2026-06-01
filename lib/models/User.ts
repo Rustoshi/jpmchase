@@ -42,6 +42,7 @@ export interface IUser extends Document {
   transferPin: string
   referralCode: string
   referredBy?: mongoose.Types.ObjectId
+  preferredCurrency: string
   createdAt: Date
   updatedAt: Date
 }
@@ -92,6 +93,7 @@ const UserSchema = new Schema<IUser>(
     transferPin:            { type: String },
     referralCode:           { type: String, unique: true, sparse: true },
     referredBy:             { type: Schema.Types.ObjectId, ref: "User" },
+    preferredCurrency:      { type: String, default: "USD", uppercase: true, trim: true },
   },
   { timestamps: true }
 )
