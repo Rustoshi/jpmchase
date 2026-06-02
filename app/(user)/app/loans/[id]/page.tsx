@@ -91,7 +91,7 @@ export default function LoanDetailPage() {
   const router = useRouter()
   const params = useParams()
   const loanId = params.id as string
-  const { formatAmount } = useCurrency()
+  const { formatAmount, symbol: currencySymbol } = useCurrency()
   const fmt = (n: number) => formatAmount(n)
   const fmtShort = (n: number) => formatAmount(n)
 
@@ -480,7 +480,7 @@ export default function LoanDetailPage() {
                       className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-medium pointer-events-none"
                       style={{ color: payAmount ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)" }}
                     >
-                      $
+                      {currencySymbol}
                     </span>
                     <input
                       type="number"
@@ -541,7 +541,7 @@ export default function LoanDetailPage() {
                     opacity: payAmount && payPin && !paying ? 1 : 0.5,
                   }}
                 >
-                  {paying ? "Processing..." : `Pay ${payAmount ? fmt(parseFloat(payAmount) || 0) : "$0.00"}`}
+                  {paying ? "Processing..." : `Pay ${payAmount ? fmt(parseFloat(payAmount) || 0) : `${currencySymbol}0.00`}`}
                 </button>
               </div>
             )}

@@ -20,6 +20,7 @@ import { TransactionModal }   from "./modals/TransactionModal"
 import { ResetPasswordModal } from "./modals/ResetPasswordModal"
 import { SuspendModal }       from "./modals/SuspendModal"
 import { cn }                 from "@/lib/utils"
+import { formatCurrency, getCurrencySymbol } from "@/lib/utils/currency"
 import type { UserDetail, TransactionData, KycDocData } from "@/lib/services/user.service"
 
 interface Props {
@@ -30,16 +31,6 @@ interface AuditEntry {
   id: string; action: string; adminEmail: string; adminName: string
   targetType?: string; payload?: Record<string, unknown>
   createdAt: string; ipAddress?: string
-}
-
-const fmtUSD = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n)
-
-const fmtAmount = (amount: number, currency: string) => {
-  if (currency === "BTC") {
-    return `₿${amount.toFixed(8)}`
-  }
-  return fmtUSD(amount)
 }
 
 // ── Copy button ───────────────────────────────────────────────────────────────
@@ -220,6 +211,13 @@ export function UserProfileClient({ user: initialUser }: Props) {
   const router = useRouter()
   const [user, setUser] = useState<UserDetail>(initialUser)
 
+  // All of this user's fiat figures are displayed in *their* preferred currency,
+  // matching what the user sees in their own portal.
+  const userCurrency = user.preferredCurrency || "USD"
+  const fmtFiat = (n: number) => formatCurrency(n, userCurrency)
+  const fmtAmount = (amount: number, currency: string) =>
+    currency === "BTC" ? `₿${amount.toFixed(8)}` : fmtFiat(amount)
+
   // Modal state
   const [modal, setModal] = useState<
     "edit" | "credit" | "debit" | "reset" | "suspend" | null
@@ -286,6 +284,9 @@ export function UserProfileClient({ user: initialUser }: Props) {
                 <StatusBadge status={user.isSuspended ? "suspended" : user.isActive ? "active" : "inactive"} />
                 {user.emailVerified && <Badge variant="success">Email verified</Badge>}
                 {user.twoFactorEnabled && <Badge variant="outline">2FA enabled</Badge>}
+                <Badge variant="outline">
+                  Currency: {getCurrencySymbol(userCurrency)} {userCurrency}
+                </Badge>
               </div>
 
               {user.referralCode && (
@@ -326,8 +327,8 @@ export function UserProfileClient({ user: initialUser }: Props) {
 
         {/* ── Section 2: Stats row ── */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-          <StatCard label="Total deposited"   value={fmtUSD(user.totalDeposited)} />
-          <StatCard label="Total transferred"  value={fmtUSD(user.totalTransferred)} />
+          <StatCard label="Total deposited"   value={fmtFiat(user.totalDeposited)} />
+          <StatCard label="Total transferred"  value={fmtFiat(user.totalTransferred)} />
           <StatCard label="Active accounts"    value={user.accounts.length} />
           <StatCard label="Open tickets"       value={openTickets} />
         </div>
@@ -362,7 +363,7 @@ export function UserProfileClient({ user: initialUser }: Props) {
                       </p>
                     ) : (
                       <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">
-                        {new Intl.NumberFormat("en-US", { style: "currency", currency: account.currency, maximumFractionDigits: 2 }).format(account.balance)}
+                        {fmtFiat(account.balance)}
                       </p>
                     )}
                   </div>
@@ -462,7 +463,7 @@ export function UserProfileClient({ user: initialUser }: Props) {
                 { key: "paymentMethodName", label: "Method",
                   render: (r) => <span className="text-slate-600">{String(r.paymentMethodName ?? "—")}</span> },
                 { key: "requestedAmount", label: "Amount", sortable: true,
-                  render: (r) => <span className="font-medium">{fmtUSD(Number(r.requestedAmount))} {String(r.requestedCurrency)}</span> },
+                  render: (r) => <span className="font-medium">{formatCurrency(Number(r.requestedAmount), String(r.requestedCurrency || userCurrency))}</span> },
                 { key: "status", label: "Status",
                   render: (r) => <StatusBadge status={String(r.status)} /> },
                 { key: "adminNote", label: "Admin note",
@@ -496,7 +497,7 @@ export function UserProfileClient({ user: initialUser }: Props) {
             <DataTable
               columns={[
                 { key: "amount",     label: "Amount",  sortable: true,
-                  render: (r) => <span className="font-medium">{fmtUSD(Number(r.amount))}</span> },
+                  render: (r) => <span className="font-medium">{fmtFiat(Number(r.amount))}</span> },
                 { key: "purpose",    label: "Purpose",
                   render: (r) => <span className="text-slate-600 truncate max-w-[180px] block">{String(r.purpose)}</span> },
                 { key: "termMonths", label: "Term",
@@ -520,7 +521,7 @@ export function UserProfileClient({ user: initialUser }: Props) {
                 { key: "cardType",    label: "Card type",
                   render: (r) => <span className="capitalize">{String(r.cardType).replace(/_/g, " ")}</span> },
                 { key: "creditLimit", label: "Credit limit",
-                  render: (r) => <span>{r.creditLimit != null ? fmtUSD(Number(r.creditLimit)) : "—"}</span> },
+                  render: (r) => <span>{r.creditLimit != null ? fmtFiat(Number(r.creditLimit)) : "—"}</span> },
                 { key: "status",      label: "Status",
                   render: (r) => <StatusBadge status={String(r.status)} /> },
                 { key: "cardNumber",  label: "Card number",

@@ -601,7 +601,7 @@ export default function CardDetailsPage() {
               <div className="p-4 flex justify-between">
                 <span className="text-[13px]" style={{ color: colors.textSecondary }}>Per-Transaction Limit</span>
                 <span className="text-[13px] font-medium" style={{ color: colors.textPrimary }}>
-                  ${card.spendingLimit.toLocaleString()}
+                  {currencySymbol}{card.spendingLimit.toLocaleString()}
                 </span>
               </div>
             )}
@@ -674,7 +674,7 @@ export default function CardDetailsPage() {
                     </div>
                     <p className={`text-[13px] font-semibold`}
                       style={{ color: tx.type === "payment" || tx.type === "refund" ? colors.green : colors.red }}>
-                      {tx.type === "payment" || tx.type === "refund" ? "+" : "-"}${tx.amount.toFixed(2)}
+                      {tx.type === "payment" || tx.type === "refund" ? "+" : "-"}{currencySymbol}{tx.amount.toFixed(2)}
                     </p>
                   </div>
                 ))
@@ -736,11 +736,11 @@ export default function CardDetailsPage() {
             <div className="rounded-xl p-3 mb-4" style={{ background: colors.bgHover, border: `1px solid ${colors.border}` }}>
               <div className="flex justify-between text-[13px]">
                 <span style={{ color: colors.textSecondary }}>Balance Owed</span>
-                <span className="font-semibold" style={{ color: colors.textPrimary }}>${card.balance.toFixed(2)}</span>
+                <span className="font-semibold" style={{ color: colors.textPrimary }}>{currencySymbol}{card.balance.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-[13px] mt-1.5">
                 <span style={{ color: colors.textSecondary }}>Account Balance</span>
-                <span className="font-semibold" style={{ color: colors.textPrimary }}>${accountBalance.toFixed(2)}</span>
+                <span className="font-semibold" style={{ color: colors.textPrimary }}>{currencySymbol}{accountBalance.toFixed(2)}</span>
               </div>
             </div>
 
@@ -749,7 +749,7 @@ export default function CardDetailsPage() {
                 Payment Amount
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: colors.textTertiary }}>$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: colors.textTertiary }}>{currencySymbol}</span>
                 <input
                   type="number"
                   value={payAmount}
@@ -815,7 +815,7 @@ export default function CardDetailsPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-[12px] font-medium mb-1.5 block" style={{ color: colors.textSecondary }}>
-                  Per-Transaction Limit ($)
+                  Per-Transaction Limit ({currencySymbol})
                 </label>
                 <input
                   type="number"
@@ -827,7 +827,7 @@ export default function CardDetailsPage() {
               </div>
               <div>
                 <label className="text-[12px] font-medium mb-1.5 block" style={{ color: colors.textSecondary }}>
-                  Daily Spend Limit ($)
+                  Daily Spend Limit ({currencySymbol})
                 </label>
                 <input
                   type="number"
@@ -871,7 +871,7 @@ export default function CardDetailsPage() {
               {isCredit && card.balance > 0 && (
                 <div className="mt-3 p-3 rounded-xl" style={{ background: "rgba(239,68,68,0.1)" }}>
                   <p className="text-[13px]" style={{ color: "#EF4444" }}>
-                    You must pay off your balance (${card.balance.toFixed(2)}) before deleting this card.
+                    You must pay off your balance ({currencySymbol}{card.balance.toFixed(2)}) before deleting this card.
                   </p>
                 </div>
               )}
@@ -943,7 +943,7 @@ export default function CardDetailsPage() {
                       </p>
                     </div>
                     <p className="text-[13px] font-semibold" style={{ color: tx.type === "payment" || tx.type === "refund" ? colors.green : colors.red }}>
-                      {tx.type === "payment" || tx.type === "refund" ? "+" : "-"}${tx.amount.toFixed(2)}
+                      {tx.type === "payment" || tx.type === "refund" ? "+" : "-"}{currencySymbol}{tx.amount.toFixed(2)}
                     </p>
                   </div>
                 ))

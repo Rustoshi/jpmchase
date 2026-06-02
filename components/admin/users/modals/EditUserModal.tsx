@@ -6,7 +6,14 @@ import { zodResolver }    from "@hookform/resolvers/zod"
 import { z }              from "zod"
 import { X, User, MapPin, Shield, Settings, AlertTriangle, Wallet } from "lucide-react"
 import { toast }          from "@/components/ui/use-toast"
+import { getCurrencySymbol } from "@/lib/utils/currency"
 import type { UserDetail } from "@/lib/services/user.service"
+
+// Fallback list if the platform settings fetch is unavailable.
+const FALLBACK_CURRENCIES = [
+  "USD", "EUR", "GBP", "CAD", "AUD", "CHF", "JPY", "CNY", "INR", "NGN",
+  "GHS", "KES", "ZAR", "BRL", "MXN", "AED", "SAR",
+]
 
 const Schema = z.object({
   firstName:     z.string().min(1, "First name is required"),
@@ -28,6 +35,7 @@ const Schema = z.object({
   emailVerified: z.boolean(),
   twoFactorEnabled: z.boolean(),
   transferPin:   z.string().optional(),
+  preferredCurrency: z.string().min(1, "Currency is required"),
 })
 
 type FormValues = z.infer<typeof Schema>
@@ -43,6 +51,7 @@ export function EditUserModal({ open, onClose, onSuccess, user }: Props) {
   const [activeTab, setActiveTab] = useState<"profile" | "address" | "security" | "settings" | "balances">("profile")
   const [balances, setBalances] = useState<Record<string, string>>({})
   const [savingBalances, setSavingBalances] = useState(false)
+  const [currencies, setCurrencies] = useState<string[]>(FALLBACK_CURRENCIES)
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -71,12 +80,14 @@ export function EditUserModal({ open, onClose, onSuccess, user }: Props) {
       emailVerified: u.emailVerified,
       twoFactorEnabled: u.twoFactorEnabled,
       transferPin:   (u as any).transferPin ?? "",
+      preferredCurrency: u.preferredCurrency || "USD",
     }
   }
 
   const watchedRole       = watch("role")
   const watchedKycStatus  = watch("kycStatus")
   const watchedSuspended  = watch("isSuspended")
+  const watchedCurrency   = watch("preferredCurrency")
 
   useEffect(() => {
     if (open) {
@@ -94,6 +105,22 @@ export function EditUserModal({ open, onClose, onSuccess, user }: Props) {
       setBalances(initialBalances)
     }
   }, [open, user, reset])
+
+  // Load the platform's supported currencies for the selector
+  useEffect(() => {
+    if (!open) return
+    ;(async () => {
+      try {
+        const res = await fetch("/api/public/settings")
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data.supportedCurrencies) && data.supportedCurrencies.length > 0) {
+            setCurrencies(data.supportedCurrencies)
+          }
+        }
+      } catch { /* keep fallback list */ }
+    })()
+  }, [open])
 
   const onSubmit = async (values: FormValues) => {
     const body = {
@@ -117,6 +144,7 @@ export function EditUserModal({ open, onClose, onSuccess, user }: Props) {
       suspendReason: values.isSuspended ? values.suspendReason : undefined,
       emailVerified: values.emailVerified,
       transferPin:   values.transferPin || undefined,
+      preferredCurrency: values.preferredCurrency,
     }
 
     const res = await fetch(`/api/admin/users/${user.id}`, {
@@ -381,6 +409,27 @@ export function EditUserModal({ open, onClose, onSuccess, user }: Props) {
             {/* Settings Tab */}
             {activeTab === "settings" && (
               <>
+                <div>
+                  <label className={labelClass}>Preferred Currency</label>
+                  <select {...register("preferredCurrency")} className={selectClass}>
+                    {/* Ensure the user's current currency is always selectable */}
+                    {!currencies.includes(watchedCurrency) && watchedCurrency && (
+                      <option value={watchedCurrency}>
+                        {getCurrencySymbol(watchedCurrency)} {watchedCurrency}
+                      </option>
+                    )}
+                    {currencies.map((c) => (
+                      <option key={c} value={c}>
+                        {getCurrencySymbol(c)} {c}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Currency used to display this user&apos;s balances and amounts across the app
+                  </p>
+                  {errors.preferredCurrency && <p className="mt-1 text-xs text-red-500">{errors.preferredCurrency.message}</p>}
+                </div>
+
                 <div className="space-y-4">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" {...register("isActive")} className={checkboxClass} />
@@ -430,6 +479,10 @@ export function EditUserModal({ open, onClose, onSuccess, user }: Props) {
                       <span className="text-gray-500">Accounts</span>
                       <p className="text-gray-700 dark:text-gray-300">{user.accounts?.length ?? 0}</p>
                     </div>
+                    <div>
+                      <span className="text-gray-500">Currency</span>
+                      <p className="text-gray-700 dark:text-gray-300">{getCurrencySymbol(watchedCurrency)} {watchedCurrency}</p>
+                    </div>
                   </div>
                 </div>
               </>
@@ -452,10 +505,10 @@ export function EditUserModal({ open, onClose, onSuccess, user }: Props) {
                   <div className="space-y-4">
                     {user.accounts.map((account) => {
                       const isBitcoin = account.walletType === "bitcoin"
-                      const currencySymbol = isBitcoin ? "₿" : "$"
-                      const accountLabel = isBitcoin 
-                        ? "Bitcoin Wallet" 
-                        : `${account.currency} ${account.accountType || "Account"}`
+                      const currencySymbol = isBitcoin ? "₿" : getCurrencySymbol(watchedCurrency)
+                      const accountLabel = isBitcoin
+                        ? "Bitcoin Wallet"
+                        : `${watchedCurrency} ${account.accountType || "Account"}`
 
                       return (
                         <div 

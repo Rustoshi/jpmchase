@@ -69,12 +69,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           kycStatus:   user.kycStatus   as "unverified" | "pending" | "verified" | "rejected",
           isActive:    user.isActive,
           isSuspended: user.isSuspended,
+          preferredCurrency: user.preferredCurrency || "USD",
         }
       },
     }),
   ],
   callbacks: {
-    jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id          = user.id!
         token.role        = user.role
@@ -83,7 +84,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.kycStatus   = user.kycStatus
         token.isActive    = user.isActive
         token.isSuspended = user.isSuspended
+        token.preferredCurrency = user.preferredCurrency
       }
+
+      // Refresh the preferred currency from the DB when the session is
+      // explicitly updated (e.g. user changes it in settings) so the change
+      // takes effect without requiring a re-login.
+      if (trigger === "update" && token.id) {
+        try {
+          await connectDB()
+          const fresh = await User.findById(token.id).select("preferredCurrency").lean()
+          if (fresh?.preferredCurrency) token.preferredCurrency = fresh.preferredCurrency
+        } catch {
+          // Non-critical — keep the existing token value
+        }
+      }
+
       return token
     },
     session({ session, token }) {
@@ -94,6 +110,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.kycStatus   = token.kycStatus
       session.user.isActive    = token.isActive
       session.user.isSuspended = token.isSuspended
+      session.user.preferredCurrency = token.preferredCurrency || "USD"
       return session
     },
     redirect({ url, baseUrl }) {

@@ -12,6 +12,7 @@ declare module "next-auth" {
       kycStatus:   "unverified" | "pending" | "verified" | "rejected"
       isActive:    boolean
       isSuspended: boolean
+      preferredCurrency: string
     }
   }
 
@@ -22,6 +23,7 @@ declare module "next-auth" {
     kycStatus:   "unverified" | "pending" | "verified" | "rejected"
     isActive:    boolean
     isSuspended: boolean
+    preferredCurrency: string
   }
 }
 
@@ -34,5 +36,6 @@ declare module "next-auth/jwt" {
     kycStatus:   "unverified" | "pending" | "verified" | "rejected"
     isActive:    boolean
     isSuspended: boolean
+    preferredCurrency: string
   }
 }

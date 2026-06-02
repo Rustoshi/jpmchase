@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { UserHeader } from "@/components/user/UserHeader"
 import { useThemeColors } from "@/components/shared/ThemeProvider"
+import { useCurrency } from "@/components/shared/PlatformSettingsProvider"
 import { BANK_NAME } from "@/lib/brand"
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -97,17 +98,9 @@ function formatDateLong(date: string | Date): string {
   })
 }
 
-function formatCurrency(amount: number, currency = "USD"): string {
-  return (amount / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  })
-}
-
 // ── PDF Generation ───────────────────────────────────────────────────────────
 
-function generateStatementHTML(data: StatementDownloadData): string {
+function generateStatementHTML(data: StatementDownloadData, fmtCents: (n: number) => string): string {
   const { bankName, statement, account, user, transactions } = data
 
   const userAddress = user.address
@@ -123,9 +116,9 @@ function generateStatementHTML(data: StatementDownloadData): string {
         <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px;">${formatDate(tx.date)}</td>
         <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px;">${tx.description}</td>
         <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 11px; color: #6b7280;">${tx.reference}</td>
-        <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px; text-align: right; color: #dc2626;">${tx.debit ? formatCurrency(tx.debit, account.currency) : ""}</td>
-        <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px; text-align: right; color: #16a34a;">${tx.credit ? formatCurrency(tx.credit, account.currency) : ""}</td>
-        <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px; text-align: right; font-weight: 500;">${formatCurrency(tx.balance, account.currency)}</td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px; text-align: right; color: #dc2626;">${tx.debit ? fmtCents(tx.debit) : ""}</td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px; text-align: right; color: #16a34a;">${tx.credit ? fmtCents(tx.credit) : ""}</td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 12px; text-align: right; font-weight: 500;">${fmtCents(tx.balance)}</td>
       </tr>
     `
     )
@@ -202,19 +195,19 @@ function generateStatementHTML(data: StatementDownloadData): string {
   <div class="summary-grid">
     <div class="summary-box">
       <div class="summary-label">Opening Balance</div>
-      <div class="summary-value">${formatCurrency(statement.openingBalance, account.currency)}</div>
+      <div class="summary-value">${fmtCents(statement.openingBalance)}</div>
     </div>
     <div class="summary-box">
       <div class="summary-label">Total Credits</div>
-      <div class="summary-value credit">${formatCurrency(statement.totalCredits, account.currency)}</div>
+      <div class="summary-value credit">${fmtCents(statement.totalCredits)}</div>
     </div>
     <div class="summary-box">
       <div class="summary-label">Total Debits</div>
-      <div class="summary-value debit">${formatCurrency(statement.totalDebits, account.currency)}</div>
+      <div class="summary-value debit">${fmtCents(statement.totalDebits)}</div>
     </div>
     <div class="summary-box">
       <div class="summary-label">Closing Balance</div>
-      <div class="summary-value">${formatCurrency(statement.closingBalance, account.currency)}</div>
+      <div class="summary-value">${fmtCents(statement.closingBalance)}</div>
     </div>
   </div>
 
@@ -250,6 +243,7 @@ export default function StatementDetailPage() {
   const router = useRouter()
   const params = useParams()
   const colors = useThemeColors()
+  const { formatCents } = useCurrency()
   const printFrameRef = useRef<HTMLIFrameElement>(null)
 
   const [statement, setStatement] = useState<StatementSummary | null>(null)
@@ -290,7 +284,7 @@ export default function StatementDetailPage() {
       if (!res.ok) throw new Error("Failed to fetch statement data")
 
       const data: StatementDownloadData = await res.json()
-      const html = generateStatementHTML(data)
+      const html = generateStatementHTML(data, formatCents)
 
       // Create blob and download
       const blob = new Blob([html], { type: "text/html" })
@@ -310,7 +304,7 @@ export default function StatementDetailPage() {
     } finally {
       setDownloading(false)
     }
-  }, [statementId])
+  }, [statementId, formatCents])
 
   // Copy reference
   const handleCopyRef = useCallback(() => {
@@ -388,13 +382,13 @@ export default function StatementDetailPage() {
           <div className="rounded-xl p-4" style={{ background: colors.bgElevated, border: `1px solid ${colors.border}` }}>
             <p className="text-[11px] uppercase tracking-wide" style={{ color: colors.textMuted }}>Opening Balance</p>
             <p className="text-[20px] font-bold mt-1" style={{ color: colors.textPrimary }}>
-              {formatCurrency(statement.openingBalance, statement.currency)}
+              {formatCents(statement.openingBalance)}
             </p>
           </div>
           <div className="rounded-xl p-4" style={{ background: colors.bgElevated, border: `1px solid ${colors.border}` }}>
             <p className="text-[11px] uppercase tracking-wide" style={{ color: colors.textMuted }}>Closing Balance</p>
             <p className="text-[20px] font-bold mt-1" style={{ color: colors.textPrimary }}>
-              {formatCurrency(statement.closingBalance, statement.currency)}
+              {formatCents(statement.closingBalance)}
             </p>
           </div>
           <div className="rounded-xl p-4" style={{ background: colors.greenBg, border: `1px solid ${colors.green}1A` }}>
@@ -403,7 +397,7 @@ export default function StatementDetailPage() {
               <p className="text-[11px] uppercase tracking-wide" style={{ color: colors.green }}>Total Credits</p>
             </div>
             <p className="text-[18px] font-bold mt-1" style={{ color: colors.green }}>
-              {formatCurrency(statement.totalCredits, statement.currency)}
+              {formatCents(statement.totalCredits)}
             </p>
           </div>
           <div className="rounded-xl p-4" style={{ background: colors.redBg, border: `1px solid ${colors.red}1A` }}>
@@ -412,7 +406,7 @@ export default function StatementDetailPage() {
               <p className="text-[11px] uppercase tracking-wide" style={{ color: colors.red }}>Total Debits</p>
             </div>
             <p className="text-[18px] font-bold mt-1" style={{ color: colors.red }}>
-              {formatCurrency(statement.totalDebits, statement.currency)}
+              {formatCents(statement.totalDebits)}
             </p>
           </div>
         </div>

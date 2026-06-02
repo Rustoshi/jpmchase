@@ -110,7 +110,7 @@ function calcMonthly(principal: number, annualRate: number, months: number) {
 export default function LoansPage() {
   const router = useRouter()
   const colors = useThemeColors()
-  const { formatAmount } = useCurrency()
+  const { formatAmount, symbol: currencySymbol } = useCurrency()
   const fmt = (n: number) => formatAmount(n)
   const fmtExact = (n: number) => formatAmount(n)
   const [view, setView] = useState<View>("list")
@@ -517,7 +517,7 @@ export default function LoansPage() {
                   type="number"
                   value={form.amount}
                   onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-                  placeholder={`${selectedProduct.minAmount.toLocaleString()} – ${selectedProduct.maxAmount.toLocaleString()}`}
+                  placeholder={`${currencySymbol}${selectedProduct.minAmount.toLocaleString()} – ${currencySymbol}${selectedProduct.maxAmount.toLocaleString()}`}
                   className="w-full h-11 rounded-xl px-4 pl-9 text-[14px] outline-none"
                   style={{ background: colors.bgHover, border: `1px solid ${colors.border}`, color: colors.textPrimary }}
                   min={selectedProduct.minAmount}

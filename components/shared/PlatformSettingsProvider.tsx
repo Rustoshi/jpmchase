@@ -12,6 +12,7 @@ interface PlatformSettings {
 
 interface PlatformSettingsContextValue extends PlatformSettings {
   loading: boolean
+  userCurrency: string
   currencySymbol: string
   formatAmount: (amount: number) => string
   formatCents: (amountInCents: number) => string
@@ -27,42 +28,69 @@ const defaultSettings: PlatformSettings = {
 const PlatformSettingsContext = createContext<PlatformSettingsContextValue>({
   ...defaultSettings,
   loading: true,
+  userCurrency: "USD",
   currencySymbol: "$",
   formatAmount: (n) => `$${n.toLocaleString()}`,
   formatCents: (n) => `$${(n / 100).toLocaleString()}`,
 })
 
-export function PlatformSettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<PlatformSettings>(defaultSettings)
-  const [loading, setLoading] = useState(true)
+export function PlatformSettingsProvider({
+  children,
+  initialCurrency,
+}: {
+  children: ReactNode
+  /**
+   * The user's preferred currency, resolved server-side from their user
+   * record (via the session). Seeding from this avoids a flash of the
+   * default currency and works even if the client fetch below fails.
+   */
+  initialCurrency?: string
+}) {
+  const seedCurrency = initialCurrency || "USD"
+  const [settings, setSettings] = useState<PlatformSettings>({
+    ...defaultSettings,
+    defaultCurrency: seedCurrency,
+  })
+  const [userCurrency, setUserCurrency] = useState(seedCurrency)
+  // Already have the authoritative currency from the session — don't block on fetch
+  const [loading, setLoading] = useState(!initialCurrency)
 
   useEffect(() => {
-    fetch("/api/public/settings")
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        if (data) {
-          setSettings({
-            defaultCurrency: data.defaultCurrency || "USD",
-            supportedCurrencies: data.supportedCurrencies || ["USD"],
-            maintenanceMode: data.maintenanceMode || false,
-            maintenanceMessage: data.maintenanceMessage || null,
-          })
-        }
+    Promise.all([
+      fetch("/api/public/settings")
+        .then((res) => res.ok ? res.json() : null)
+        .catch(() => null),
+      fetch("/api/user/profile")
+        .then((res) => res.ok ? res.json() : null)
+        .catch(() => null),
+    ])
+      .then(([platformData, userData]) => {
+        // The user's preferred currency is the source of truth; fall back to
+        // the server-seeded value (and only then to the platform default).
+        const resolvedCurrency =
+          userData?.preferredCurrency || initialCurrency || "USD"
+        setSettings({
+          defaultCurrency: resolvedCurrency,
+          supportedCurrencies: platformData?.supportedCurrencies || ["USD"],
+          maintenanceMode: platformData?.maintenanceMode || false,
+          maintenanceMessage: platformData?.maintenanceMessage || null,
+        })
+        setUserCurrency(resolvedCurrency)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [])
+  }, [initialCurrency])
 
-  const currencySymbol = getCurrencySymbol(settings.defaultCurrency)
+  const currencySymbol = getCurrencySymbol(userCurrency)
 
   const formatAmount = useCallback(
-    (amount: number) => formatCurrency(amount, settings.defaultCurrency),
-    [settings.defaultCurrency]
+    (amount: number) => formatCurrency(amount, userCurrency),
+    [userCurrency]
   )
 
   const formatCents = useCallback(
-    (amountInCents: number) => formatCentsAsCurrency(amountInCents, settings.defaultCurrency),
-    [settings.defaultCurrency]
+    (amountInCents: number) => formatCentsAsCurrency(amountInCents, userCurrency),
+    [userCurrency]
   )
 
   return (
@@ -70,6 +98,7 @@ export function PlatformSettingsProvider({ children }: { children: ReactNode }) 
       value={{
         ...settings,
         loading,
+        userCurrency,
         currencySymbol,
         formatAmount,
         formatCents,

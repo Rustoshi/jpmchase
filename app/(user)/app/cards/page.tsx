@@ -666,7 +666,7 @@ export default function CardsPage() {
                             color: preferredLimit === limit ? colors.blue : colors.textSecondary,
                           }}
                         >
-                          ${limit.toLocaleString()}
+                          {currencySymbol}{limit.toLocaleString()}
                         </button>
                       ))}
                     </div>
@@ -692,7 +692,7 @@ export default function CardsPage() {
                             color: dailySpendLimit === limit ? colors.green : colors.textSecondary,
                           }}
                         >
-                          ${limit.toLocaleString()}
+                          {currencySymbol}{limit.toLocaleString()}
                         </button>
                       ))}
                     </div>
@@ -824,11 +824,11 @@ export default function CardsPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-[13px]" style={{ color: colors.textSecondary }}>Preferred Limit</span>
-                        <span className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>${preferredLimit.toLocaleString()}</span>
+                        <span className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>{currencySymbol}{preferredLimit.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-[13px]" style={{ color: colors.textSecondary }}>Daily Spend Limit</span>
-                        <span className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>${dailySpendLimit.toLocaleString()}/day</span>
+                        <span className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>{currencySymbol}{dailySpendLimit.toLocaleString()}/day</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-[13px]" style={{ color: colors.textSecondary }}>Card PIN</span>
@@ -963,8 +963,9 @@ function CardVisual({ card, colors, accountBalance, onPayment }: CardVisualProps
   const isVisa = card.cardNetwork === "visa"
   const isAmex = card.cardNetwork === "amex"
   const isFrozen = card.status === "frozen"
+  const { symbol: currencySymbol } = useCurrency()
   const [showCvv, setShowCvv] = useState(false)
-  
+
   // Payment modal state
   const [showPayModal, setShowPayModal] = useState(false)
   const [payAmount, setPayAmount] = useState("")
@@ -979,11 +980,11 @@ function CardVisual({ card, colors, accountBalance, onPayment }: CardVisualProps
       return
     }
     if (amount > card.balance) {
-      setPayError(`Amount exceeds balance owed ($${card.balance.toLocaleString()})`)
+      setPayError(`Amount exceeds balance owed (${currencySymbol}${card.balance.toLocaleString()})`)
       return
     }
     if (accountBalance !== undefined && amount > accountBalance) {
-      setPayError(`Insufficient account balance ($${accountBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })})`)
+      setPayError(`Insufficient account balance (${currencySymbol}${accountBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })})`)
       return
     }
 
@@ -1123,7 +1124,7 @@ function CardVisual({ card, colors, accountBalance, onPayment }: CardVisualProps
               {card.cardType === "credit" ? "Credit Limit" : "Spending Limit"}
             </p>
             <p className="text-[14px] font-semibold tabular-nums mt-0.5" style={{ color: colors.textPrimary }}>
-              ${(card.cardType === "credit" ? card.creditLimit : card.spendingLimit).toLocaleString()}
+              {currencySymbol}{(card.cardType === "credit" ? card.creditLimit : card.spendingLimit).toLocaleString()}
             </p>
           </div>
           <div>
@@ -1131,8 +1132,8 @@ function CardVisual({ card, colors, accountBalance, onPayment }: CardVisualProps
               {card.cardType === "credit" ? "Balance Owed" : "Available Balance"}
             </p>
             <p className="text-[14px] font-semibold tabular-nums mt-0.5" style={{ color: colors.textPrimary }}>
-              ${card.cardType === "credit" 
-                ? card.balance.toLocaleString() 
+              {currencySymbol}{card.cardType === "credit"
+                ? card.balance.toLocaleString()
                 : (accountBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
           </div>
@@ -1191,10 +1192,10 @@ function CardVisual({ card, colors, accountBalance, onPayment }: CardVisualProps
                 </div>
                 <p className="text-[17px] font-semibold" style={{ color: colors.textPrimary }}>Payment Successful</p>
                 <p className="text-[14px] mt-2" style={{ color: colors.textSecondary }}>
-                  You paid <span className="font-semibold">${paySuccess.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  You paid <span className="font-semibold">{currencySymbol}{paySuccess.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </p>
                 <p className="text-[13px] mt-1" style={{ color: colors.textTertiary }}>
-                  New balance: ${paySuccess.newBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  New balance: {currencySymbol}{paySuccess.newBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </p>
                 <button
                   onClick={closePayModal}
@@ -1216,11 +1217,11 @@ function CardVisual({ card, colors, accountBalance, onPayment }: CardVisualProps
                 <div className="rounded-xl p-3 mb-4" style={{ background: colors.bgHover, border: `1px solid ${colors.border}` }}>
                   <div className="flex justify-between text-[13px]">
                     <span style={{ color: colors.textSecondary }}>Balance Owed</span>
-                    <span className="font-semibold" style={{ color: colors.textPrimary }}>${card.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold" style={{ color: colors.textPrimary }}>{currencySymbol}{card.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-[13px] mt-1.5">
                     <span style={{ color: colors.textSecondary }}>Account Balance</span>
-                    <span className="font-semibold" style={{ color: colors.textPrimary }}>${(accountBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold" style={{ color: colors.textPrimary }}>{currencySymbol}{(accountBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 
@@ -1229,7 +1230,7 @@ function CardVisual({ card, colors, accountBalance, onPayment }: CardVisualProps
                     Payment Amount
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: colors.textTertiary }}>$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: colors.textTertiary }}>{currencySymbol}</span>
                     <input
                       type="number"
                       value={payAmount}

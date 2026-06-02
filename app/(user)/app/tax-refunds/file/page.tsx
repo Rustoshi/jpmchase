@@ -373,7 +373,7 @@ export default function FileTaxRefundPage() {
                 <p className="text-[12px] font-semibold uppercase tracking-wide mb-3" style={{ color: colors.green }}>Estimated Refund</p>
                 <div className="text-center mb-3">
                   <p className="text-[28px] font-bold tabular-nums" style={{ color: refundAmount > 0 ? colors.green : colors.red }}>
-                    {refundAmount > 0 ? fmt(refundAmount) : "$0.00"}
+                    {refundAmount > 0 ? fmt(refundAmount) : `${currencySymbol}0.00`}
                   </p>
                   <p className="text-[11px] mt-0.5" style={{ color: colors.textMuted }}>
                     {refundAmount > 0 ? "You may be eligible for a refund" : "No refund — tax withheld does not exceed estimated liability"}

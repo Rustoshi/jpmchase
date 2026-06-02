@@ -873,7 +873,7 @@ export default function DepositPage() {
               display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8,
             }}>
               <span style={{ fontSize: 13, color: colors.textTertiary }}>Deposit Amount</span>
-              <span style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>${parseFloat(amount).toLocaleString()}</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>{currencySymbol}{parseFloat(amount).toLocaleString()}</span>
             </div>
             {selectedMethod.feePercent > 0 && (
               <div style={{
@@ -881,7 +881,7 @@ export default function DepositPage() {
                 display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8,
               }}>
                 <span style={{ fontSize: 13, color: colors.textTertiary }}>Processing Fee ({selectedMethod.feePercent}%)</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: colors.yellow }}>${(parseFloat(amount) * selectedMethod.feePercent / 100).toFixed(2)}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: colors.yellow }}>{currencySymbol}{(parseFloat(amount) * selectedMethod.feePercent / 100).toFixed(2)}</span>
               </div>
             )}
 
@@ -909,7 +909,7 @@ export default function DepositPage() {
               {submitting ? (
                 <><Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> Processing...</>
               ) : (
-                <>Pay ${parseFloat(amount).toLocaleString()}</>
+                <>Pay {currencySymbol}{parseFloat(amount).toLocaleString()}</>
               )}
             </button>
           </div>
@@ -1567,7 +1567,7 @@ export default function DepositPage() {
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ fontSize: 12, color: colors.textMuted }}>Value</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: colors.green }}>${parseFloat(gcAmount).toLocaleString()}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: colors.green }}>{currencySymbol}{parseFloat(gcAmount).toLocaleString()}</span>
                 </div>
               </div>
             )}

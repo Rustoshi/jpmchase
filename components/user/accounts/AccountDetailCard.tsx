@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BANK_NAME } from "@/lib/brand"
+import { useCurrency } from "@/components/shared/PlatformSettingsProvider"
 import { WalletCard } from "@/components/user/shared/WalletCard"
 import { TransactionRow } from "@/components/user/shared/TransactionRow"
 import { Button } from "@/components/ui/button"
@@ -46,6 +47,7 @@ export function AccountDetailCard({ account, btcRate, adminBtcWallet }: Props) {
   const [isFrozen, setIsFrozen] = useState(account.isFrozen)
   const [confirmAction, setConfirmAction] = useState<"freeze" | "unfreeze" | null>(null)
   const { copiedField, copy } = useCopy()
+  const { symbol: currencySymbol } = useCurrency()
 
   const isBtc = account.walletType === "bitcoin"
   const since = new Date(account.createdAt).toLocaleDateString("en-US", {
@@ -233,13 +235,13 @@ export function AccountDetailCard({ account, btcRate, adminBtcWallet }: Props) {
             <div className="grid grid-cols-2 gap-2">
               <StatTile
                 label="Total deposited"
-                value={`$${account.totalDeposited.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`${currencySymbol}${account.totalDeposited.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={<ArrowDownToLine className="h-3.5 w-3.5" style={{ color: "#00C896" }} />}
                 color="#00C896"
               />
               <StatTile
                 label="Total withdrawn"
-                value={`$${account.totalWithdrawn.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`${currencySymbol}${account.totalWithdrawn.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={<ArrowUpFromLine className="h-3.5 w-3.5" style={{ color: "#EF4444" }} />}
                 color="#EF4444"
               />
@@ -250,7 +252,7 @@ export function AccountDetailCard({ account, btcRate, adminBtcWallet }: Props) {
               />
               <StatTile
                 label="Avg. transaction"
-                value={`$${avgTx.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`${currencySymbol}${avgTx.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               />
             </div>
           </div>

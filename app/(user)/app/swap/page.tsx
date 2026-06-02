@@ -10,6 +10,7 @@ import {
 import { UserHeader } from "@/components/user/UserHeader"
 import { BANK_NAME } from "@/lib/brand"
 import { useThemeColors } from "@/components/shared/ThemeProvider"
+import { useCurrency } from "@/components/shared/PlatformSettingsProvider"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ type Direction = "buy" | "sell"
 export default function SwapPage() {
   const router = useRouter()
   const colors = useThemeColors()
+  const { currency, symbol: currencySymbol } = useCurrency()
 
   // State
   const [accounts, setAccounts]   = useState<AccountInfo[]>([])
@@ -232,10 +234,10 @@ export default function SwapPage() {
                 </span>
               </div>
               {[
-                { label: isBuy ? "USD Spent" : "BTC Sold", value: isBuy ? `$${result.fiatAmount.toFixed(2)}` : `${result.btcAmount.toFixed(8)} BTC` },
-                { label: isBuy ? "BTC Received" : "USD Received", value: isBuy ? `${result.btcAmount.toFixed(8)} BTC` : `$${result.fiatAmount.toFixed(2)}` },
-                { label: "Fee", value: `$${result.fee.toFixed(2)}` },
-                { label: "Rate", value: `$${result.rate.toLocaleString()}` },
+                { label: isBuy ? `${currency} Spent` : "BTC Sold", value: isBuy ? `${currencySymbol}${result.fiatAmount.toFixed(2)}` : `${result.btcAmount.toFixed(8)} BTC` },
+                { label: isBuy ? "BTC Received" : `${currency} Received`, value: isBuy ? `${result.btcAmount.toFixed(8)} BTC` : `${currencySymbol}${result.fiatAmount.toFixed(2)}` },
+                { label: "Fee", value: `${currencySymbol}${result.fee.toFixed(2)}` },
+                { label: "Rate", value: `${currencySymbol}${result.rate.toLocaleString()}` },
                 { label: "Reference", value: result.reference },
               ].map((row) => (
                 <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderTop: `1px solid ${colors.border}` }}>
@@ -360,8 +362,8 @@ export default function SwapPage() {
 
   // ── Main Swap Interface ──────────────────────────────────────────────────
 
-  const fromLabel    = direction === "buy" ? "USD" : "BTC"
-  const toLabel      = direction === "buy" ? "BTC" : "USD"
+  const fromLabel    = direction === "buy" ? currency : "BTC"
+  const toLabel      = direction === "buy" ? "BTC" : currency
   const fromBalance  = direction === "buy" ? fiatBalance : btcBalance
   const fromDecimals = direction === "buy" ? 2 : 8
   const outputValue  = direction === "buy"
@@ -393,7 +395,7 @@ export default function SwapPage() {
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: 11, color: colors.textMuted, margin: 0, fontWeight: 500 }}>BTC / USD</p>
               <p style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, margin: 0, fontFamily: "'SF Mono', 'Fira Code', monospace", whiteSpace: "nowrap" }}>
-                {rateLoading ? "..." : `$${btcRate.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                {rateLoading ? "..." : `${currencySymbol}${btcRate.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
               </p>
             </div>
           </div>
@@ -439,7 +441,7 @@ export default function SwapPage() {
               <span style={{ fontSize: 11, fontWeight: 600, color: colors.textMuted, textTransform: "uppercase", letterSpacing: "0.1em" }}>You Pay</span>
               <span style={{ fontSize: 11, color: colors.textMuted, fontWeight: 500 }}>
                 Balance: {direction === "buy"
-                  ? `$${fiatBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+                  ? `${currencySymbol}${fiatBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
                   : `${btcBalance.toFixed(8)} BTC`
                 }
               </span>
@@ -466,7 +468,7 @@ export default function SwapPage() {
                 borderRadius: 12, padding: "8px 14px",
                 display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
               }}>
-                <span style={{ fontSize: 14 }}>{direction === "buy" ? "$" : "₿"}</span>
+                <span style={{ fontSize: 14 }}>{direction === "buy" ? currencySymbol : "₿"}</span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{fromLabel}</span>
               </div>
             </div>
@@ -485,7 +487,7 @@ export default function SwapPage() {
                     color: numAmount === v ? colors.blue : colors.textMuted,
                   }}
                 >
-                  ${v}
+                  {currencySymbol}{v}
                 </button>
               ))}
               <button
@@ -553,7 +555,7 @@ export default function SwapPage() {
                 borderRadius: 12, padding: "8px 14px",
                 display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
               }}>
-                <span style={{ fontSize: 14 }}>{direction === "sell" ? "$" : "₿"}</span>
+                <span style={{ fontSize: 14 }}>{direction === "sell" ? currencySymbol : "₿"}</span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{toLabel}</span>
               </div>
             </div>
@@ -567,9 +569,9 @@ export default function SwapPage() {
             borderRadius: 16, padding: "14px 16px", marginTop: 12,
           }}>
             {[
-              { label: "Exchange Rate", value: `1 BTC = $${btcRate.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
-              { label: `Fee (${feePercent}%)`, value: `$${fee.toFixed(2)}` },
-              { label: "You receive", value: direction === "buy" ? `${btcOutput.toFixed(8)} BTC` : `$${fiatOutput.toFixed(2)}`, highlight: true },
+              { label: "Exchange Rate", value: `1 BTC = ${currencySymbol}${btcRate.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+              { label: `Fee (${feePercent}%)`, value: `${currencySymbol}${fee.toFixed(2)}` },
+              { label: "You receive", value: direction === "buy" ? `${btcOutput.toFixed(8)} BTC` : `${currencySymbol}${fiatOutput.toFixed(2)}`, highlight: true },
             ].map((row) => (
               <div key={row.label} style={{
                 display: "flex", justifyContent: "space-between", padding: "5px 0",
@@ -594,7 +596,7 @@ export default function SwapPage() {
           }}>
             <AlertTriangle style={{ width: 14, height: 14, color: colors.red, flexShrink: 0 }} />
             <span style={{ fontSize: 12, color: colors.red }}>
-              Insufficient {direction === "buy" ? "USD" : "BTC"} balance
+              Insufficient {direction === "buy" ? currency : "BTC"} balance
             </span>
           </div>
         )}

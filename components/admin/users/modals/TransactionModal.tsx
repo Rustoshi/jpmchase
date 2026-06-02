@@ -14,6 +14,7 @@ import { Select, SelectItem } from "@/components/ui/select"
 import { Checkbox }       from "@/components/ui/checkbox"
 import { toast }          from "@/components/ui/use-toast"
 import { cn }             from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils/currency"
 import { ArrowDownCircle, ArrowUpCircle, Calendar, Mail } from "lucide-react"
 import type { AccountData, UserDetail } from "@/lib/services/user.service"
 
@@ -53,16 +54,16 @@ interface Props {
   mode:          "credit" | "debit"
 }
 
-function fmtBalance(account: AccountData): string {
+function fmtBalance(account: AccountData, currency: string): string {
   if (account.walletType === "bitcoin") {
     return `${account.btcBalance.toFixed(8)} BTC`
   }
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: account.currency }).format(account.balance)
+  return formatCurrency(account.balance, currency)
 }
 
-function fmtAccountLabel(account: AccountData): string {
+function fmtAccountLabel(account: AccountData, currency: string): string {
   if (account.walletType === "bitcoin") return `Bitcoin wallet (${account.btcAddress?.slice(0, 10)}…)`
-  return `${account.currency} — ${account.accountNumber}`
+  return `${currency} — ${account.accountNumber}`
 }
 
 function getDefaultDateTime(): string {
@@ -75,6 +76,8 @@ function getDefaultDateTime(): string {
 export function TransactionModal({ open, onClose, onSuccess, user, preselect, mode }: Props) {
   const isCredit = mode === "credit"
   const userFullName = `${user.firstName} ${user.lastName}`
+  // Display fiat amounts in the user's preferred currency (matches their portal)
+  const userCurrency = user.preferredCurrency || "USD"
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors, isSubmitting } } =
     useForm<FormValues>({
@@ -127,7 +130,7 @@ export function TransactionModal({ open, onClose, onSuccess, user, preselect, mo
     }
     const newBal = selectedAccount.balance + delta
     if (newBal < 0) return null
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: selectedAccount.currency }).format(newBal)
+    return formatCurrency(newBal, userCurrency)
   }
 
   const onSubmit = async (values: FormValues) => {
@@ -210,7 +213,7 @@ export function TransactionModal({ open, onClose, onSuccess, user, preselect, mo
             <Select value={watchAccountId} onValueChange={(v) => setValue("accountId", v)}>
               {(user.accounts || []).map((a) => (
                 <SelectItem key={a.id} value={a.id}>
-                  {fmtAccountLabel(a)} — {fmtBalance(a)}
+                  {fmtAccountLabel(a, userCurrency)} — {fmtBalance(a, userCurrency)}
                 </SelectItem>
               ))}
             </Select>
@@ -220,7 +223,7 @@ export function TransactionModal({ open, onClose, onSuccess, user, preselect, mo
           {/* Amount */}
           <div className="space-y-2">
             <Label htmlFor="tx-amount" className="text-sm font-medium text-gray-700">
-              Amount {isBitcoin ? "(BTC)" : `(${selectedAccount?.currency ?? "USD"})`}
+              Amount {isBitcoin ? "(BTC)" : `(${userCurrency})`}
             </Label>
             <Input
               id="tx-amount"
@@ -362,8 +365,8 @@ export function TransactionModal({ open, onClose, onSuccess, user, preselect, mo
               ) : (
                 <>
                   This will <strong>{isCredit ? "credit" : "debit"}</strong>{" "}
-                  <strong>{fmtAccountLabel(selectedAccount)}</strong>{" "}
-                  by <strong>{amountNum.toFixed(isBitcoin ? 8 : 2)} {isBitcoin ? "BTC" : selectedAccount.currency}</strong>.
+                  <strong>{fmtAccountLabel(selectedAccount, userCurrency)}</strong>{" "}
+                  by <strong>{amountNum.toFixed(isBitcoin ? 8 : 2)} {isBitcoin ? "BTC" : userCurrency}</strong>.
                   {newBalance && (
                     <> New balance: <strong>{newBalance}</strong>.</>
                   )}

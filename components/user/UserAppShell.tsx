@@ -95,7 +95,7 @@ export function UserAppShell({ session, children }: Props) {
   const displayName = `${session.user.firstName} ${session.user.lastName}`.slice(0, 20)
 
   return (
-    <PlatformSettingsProvider>
+    <PlatformSettingsProvider initialCurrency={session.user.preferredCurrency}>
     <Suspense fallback={null}>
       <NavigationLoader minDuration={350} />
     </Suspense>

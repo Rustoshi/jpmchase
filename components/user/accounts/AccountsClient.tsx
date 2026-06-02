@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { UserHeader } from "@/components/user/UserHeader"
 import { AccountDetailCard } from "@/components/user/accounts/AccountDetailCard"
 import { useCountUp } from "@/hooks/useCountUp"
+import { useCurrency } from "@/components/shared/PlatformSettingsProvider"
 import type { AccountDetail } from "@/lib/services/dashboard-user.service"
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 
 export function AccountsClient({ accounts, btcRate, adminBtcWallet }: Props) {
   const router = useRouter()
+  const { symbol: currencySymbol, formatAmount } = useCurrency()
 
   const fiatTotal = accounts
     .filter((a) => a.walletType === "fiat")
@@ -41,7 +43,7 @@ export function AccountsClient({ accounts, btcRate, adminBtcWallet }: Props) {
             Total portfolio value
           </p>
           <p className="mt-1 text-3xl font-bold tabular-nums tracking-tight text-slate-900">
-            ${animatedPortfolio.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {currencySymbol}{animatedPortfolio.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           <p className="mt-1 text-xs text-slate-400">
             {subtitleParts.join(" + ")}
