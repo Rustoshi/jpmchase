@@ -27,6 +27,8 @@ export const CURRENCIES: CurrencyInfo[] = [
   { code: "KES", name: "Kenyan Shilling" },
   { code: "EGP", name: "Egyptian Pound" },
   { code: "MAD", name: "Moroccan Dirham" },
+  { code: "MUR", name: "Mauritian Rupee" },
+  { code: "SCR", name: "Seychellois Rupee" },
   { code: "AED", name: "UAE Dirham" },
   { code: "SAR", name: "Saudi Riyal" },
   { code: "QAR", name: "Qatari Riyal" },

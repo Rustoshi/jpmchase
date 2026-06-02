@@ -174,7 +174,7 @@ export default function RegisterPage() {
             "ZMW", "BWP", "NAD", "MZN", "AOA", "RUB", "UAH", "KZT", "GEL", "AMD",
             "AZN", "TRY", "PKR", "BDT", "LKR", "NPR", "MUR", "JMD", "TTD", "BBD",
             "XCD", "BZD", "GTQ", "HNL", "NIO", "CRC", "PAB", "DOP", "CUP", "HTG",
-            "XAF", "XOF", "XPF"
+            "XAF", "XOF", "XPF", "SCR", "SRD"
           ])
         }
       } catch { /* ignore */ }

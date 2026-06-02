@@ -14,7 +14,7 @@ const NEW_CURRENCIES = [
   // South America
   "BRL", "ARS", "CLP", "COP", "PEN", "UYU", "PYG", "BOB",
   // Africa
-  "ZAR", "EGP", "KES", "GHS", "TZS", "UGX", "ZMW", "BWP", "NAD", "MZN", "AOA",
+  "ZAR", "EGP", "KES", "GHS", "TZS", "UGX", "ZMW", "BWP", "NAD", "MZN", "AOA", "SCR", "SRD",
   // Eastern Europe & Central Asia
   "RUB", "UAH", "KZT", "GEL", "AMD", "AZN",
   // Others

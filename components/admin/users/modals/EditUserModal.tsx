@@ -12,7 +12,7 @@ import type { UserDetail } from "@/lib/services/user.service"
 // Fallback list if the platform settings fetch is unavailable.
 const FALLBACK_CURRENCIES = [
   "USD", "EUR", "GBP", "CAD", "AUD", "CHF", "JPY", "CNY", "INR", "NGN",
-  "GHS", "KES", "ZAR", "BRL", "MXN", "AED", "SAR",
+  "GHS", "KES", "ZAR", "BRL", "MXN", "AED", "SAR", "MUR", "SCR", "SRD",
 ]
 
 const Schema = z.object({

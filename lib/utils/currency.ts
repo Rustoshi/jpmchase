@@ -39,6 +39,9 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   CLP: "CLP$",
   PEN: "S/",
   ARS: "AR$",
+  SRD: "$",
+  MUR: "₨",
+  SCR: "₨",
 }
 
 /**

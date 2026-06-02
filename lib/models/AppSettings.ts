@@ -162,6 +162,8 @@ const AppSettingsSchema = new Schema<IAppSettings>(
         "NAD",  // Namibian Dollar
         "MZN",  // Mozambican Metical
         "AOA",  // Angolan Kwanza
+        "SCR",  // Seychellois Rupee
+        "SRD",  // Surinamese Dollar
         // Eastern Europe & Central Asia
         "RUB",  // Russian Ruble
         "UAH",  // Ukrainian Hryvnia
