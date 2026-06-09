@@ -17,9 +17,6 @@ class AccountSuspended extends CredentialsSignin {
 class AccountInactive extends CredentialsSignin {
   code = "Account not found." as const
 }
-class EmailNotVerified extends CredentialsSignin {
-  code = "Please verify your email before signing in." as const
-}
 
 const credentialsSchema = z.object({
   email:    z.string().email(),
@@ -56,9 +53,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Shared guards — apply to both admin and user roles
         if (user.isSuspended)      throw new AccountSuspended()
         if (!user.isActive)        throw new AccountInactive()
-
-        // User-specific: require email verification
-        if (user.role === "user" && !user.emailVerified) throw new EmailNotVerified()
 
         return {
           id:          user._id.toString(),

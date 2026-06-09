@@ -165,7 +165,6 @@ export async function registerUser(
   const passwordHash = await bcrypt.hash(data.password, 12)
 
   // Generate tokens / codes
-  const emailVerificationToken = crypto.randomBytes(32).toString("hex")
   const referralCode = generateReferralCode(data.firstName)
 
   // Create user
@@ -180,8 +179,7 @@ export async function registerUser(
     kycTier:     1,
     isActive:    true,
     isSuspended: false,
-    emailVerified:          false,
-    emailVerificationToken,
+    emailVerified:          true,
     transferPin: data.pin,
     referralCode,
     preferredCurrency: data.currency.toUpperCase(),
@@ -232,7 +230,7 @@ export async function registerUser(
     user._id.toString()
   )
 
-  return { user, verificationToken: emailVerificationToken }
+  return { user }
 }
 
 // ── verifyEmail ───────────────────────────────────────────────────────────────

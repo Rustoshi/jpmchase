@@ -73,6 +73,7 @@ function LoginContent() {
   const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const verified    = searchParams.get("verified") === "true"
+  const registered  = searchParams.get("registered") === "true"
   const errorParam  = searchParams.get("error")
   const callbackUrl = searchParams.get("callbackUrl")
 
@@ -120,13 +121,15 @@ function LoginContent() {
         </div>
 
         {/* Status banners */}
-        {verified && (
+        {(verified || registered) && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-[#00C896]/10 border border-[#00C896]/20">
             <div className="w-10 h-10 rounded-full bg-[#00C896]/20 flex items-center justify-center flex-shrink-0">
               <CheckCircle2 className="w-5 h-5 text-[#00C896]" />
             </div>
             <div>
-              <p className="text-sm font-medium text-[#00C896]">Email verified successfully</p>
+              <p className="text-sm font-medium text-[#00C896]">
+                {registered ? "Account created successfully" : "Email verified successfully"}
+              </p>
               <p className="text-xs text-[#00C896]/70">You can now sign in to your account</p>
             </div>
           </div>

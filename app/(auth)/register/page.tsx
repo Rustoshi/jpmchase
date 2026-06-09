@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import Link from "next/link"
+import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import {
   Eye, 
   EyeOff, 
@@ -50,7 +52,6 @@ type RegisterValues = z.infer<typeof registerSchema>
 const STEPS = [
   { label: "Personal Info", icon: User },
   { label: "Security", icon: Shield },
-  { label: "Verify", icon: Mail },
 ]
 
 function getPasswordStrength(pw: string): { score: number; label: string; color: string; tips: string[] } {
@@ -131,12 +132,11 @@ function StepIndicator({ current }: { current: number }) {
 }
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [step, setStep]                     = useState(0)
   const [showPassword, setShowPassword]     = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [apiError, setApiError]             = useState<string | null>(null)
-  const [registeredEmail, setRegisteredEmail] = useState("")
-  const [resendCooldown, setResendCooldown] = useState(0)
   const [registrationDisabled, setRegistrationDisabled] = useState(false)
   const [checkingStatus, setCheckingStatus] = useState(true)
   const [focusedField, setFocusedField] = useState<string | null>(null)
@@ -257,37 +257,22 @@ export default function RegisterPage() {
         return
       }
 
-      setRegisteredEmail(data.email)
-      setStep(2)
-      startResendCooldown()
+      // Auto-login after successful registration
+      const result = await signIn("credentials", {
+        redirect: false,
+        email:    data.email,
+        password: data.password,
+      })
+
+      if (result?.ok) {
+        router.push("/app/dashboard")
+      } else {
+        // Account was created but auto-login failed — send to login page
+        router.push("/login?registered=true")
+      }
     } catch {
       setApiError("Something went wrong. Please try again.")
     }
-  }
-
-  const startResendCooldown = () => {
-    setResendCooldown(60)
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
-
-  const handleResend = async () => {
-    if (resendCooldown > 0) return
-    try {
-      await fetch("/api/auth/resend-verification", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email: registeredEmail }),
-      })
-      startResendCooldown()
-    } catch { /* swallow */ }
   }
 
   if (checkingStatus) {
@@ -875,67 +860,6 @@ export default function RegisterPage() {
           </form>
         )}
 
-        {/* STEP 3: Verification */}
-        {step === 2 && (
-          <div className="text-center py-8 space-y-6">
-            <div className="relative mx-auto w-24 h-24">
-              <div className="absolute inset-0 bg-[#3B9EFF]/20 rounded-full animate-ping" />
-              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-[#3B9EFF]/20 to-[#00C896]/20 flex items-center justify-center">
-                <Mail className="w-12 h-12 text-[#3B9EFF]" />
-              </div>
-            </div>
-
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Check your inbox</h1>
-              <p className="text-white/50 max-w-sm mx-auto">
-                We sent a verification link to{" "}
-                <span className="text-white font-medium">{registeredEmail}</span>
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-left space-y-3">
-              <p className="text-sm text-white/60">What to do next:</p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 text-sm text-white/70">
-                  <div className="w-6 h-6 rounded-full bg-[#3B9EFF]/20 flex items-center justify-center text-[#3B9EFF] text-xs font-bold">1</div>
-                  <span>Open your email inbox</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-white/70">
-                  <div className="w-6 h-6 rounded-full bg-[#3B9EFF]/20 flex items-center justify-center text-[#3B9EFF] text-xs font-bold">2</div>
-                  <span>Click the verification link</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-white/70">
-                  <div className="w-6 h-6 rounded-full bg-[#3B9EFF]/20 flex items-center justify-center text-[#3B9EFF] text-xs font-bold">3</div>
-                  <span>Start banking!</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              disabled={resendCooldown > 0}
-              onClick={handleResend}
-              className="w-full h-12 rounded-xl text-[14px] font-medium text-white/70 border border-white/[0.08] hover:bg-white/[0.03] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {resendCooldown > 0 ? `Resend email in ${resendCooldown}s` : "Resend verification email"}
-            </button>
-
-            <div className="space-y-2 pt-2">
-              <button
-                type="button"
-                onClick={() => { setStep(0); setRegisteredEmail("") }}
-                className="text-sm text-white/40 hover:text-white/60 transition-colors"
-              >
-                Wrong email? Start over
-              </button>
-              <Link 
-                href="/login" 
-                className="block text-sm font-medium text-[#3B9EFF] hover:text-[#3B9EFF]/80 transition-colors"
-              >
-                Already verified? Sign in
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
     </>
   )

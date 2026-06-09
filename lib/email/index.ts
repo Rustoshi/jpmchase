@@ -77,16 +77,14 @@ async function sendEmail(options: {
 // ── sendWelcomeEmail ──────────────────────────────────────────────────────────
 
 export async function sendWelcomeEmail(
-  to:                string,
-  firstName:         string,
-  verificationToken: string
+  to:        string,
+  firstName: string
 ): Promise<boolean> {
-  const verificationUrl = `${BASE_URL}/api/auth/verify-email?token=${verificationToken}`
-  const html = renderWelcomeEmail({ firstName, verificationUrl })
+  const html = renderWelcomeEmail({ firstName })
 
   return sendEmail({
     to,
-    subject: `Welcome to ${BANK_NAME} — Verify your email`,
+    subject: `Welcome to ${BANK_NAME}`,
     html,
   })
 }

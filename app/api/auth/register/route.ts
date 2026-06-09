@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Validation failed", errors }, { status: 400 })
     }
 
-    const { user, verificationToken } = await registerUser({
+    const { user } = await registerUser({
       firstName: parsed.data.firstName,
       lastName:  parsed.data.lastName,
       email:     parsed.data.email,
@@ -90,10 +90,10 @@ export async function POST(req: NextRequest) {
     })
 
     // Send welcome email (non-blocking — failures are swallowed)
-    await sendWelcomeEmail(user.email, user.firstName, verificationToken)
+    await sendWelcomeEmail(user.email, user.firstName)
 
     return NextResponse.json(
-      { success: true, message: "Account created. Check your email to verify." },
+      { success: true, message: "Account created successfully." },
       { status: 201 }
     )
   } catch (err: unknown) {
