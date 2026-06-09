@@ -137,7 +137,7 @@ async function createUserAuditLog(
 
 export async function registerUser(
   data: RegisterData
-): Promise<{ user: IUser; verificationToken: string }> {
+): Promise<{ user: IUser }> {
   await connectDB()
 
   // Validate inputs
