@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       const newToken = crypto.randomBytes(32).toString("hex")
       user.emailVerificationToken = newToken
       await user.save()
-      await sendWelcomeEmail(user.email, user.firstName, newToken)
+      await sendWelcomeEmail(user.email, user.firstName)
     }
 
     // Always return success — don't reveal whether email exists / is already verified
